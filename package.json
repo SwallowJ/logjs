@@ -1,6 +1,6 @@
 {
-    "name": "logjs",
-    "version": "1.0.0",
+    "name": "@swallowj/logjs",
+    "version": "1.0.1",
     "description": "log for node",
     "license": "ISC",
     "main": "index.js",
