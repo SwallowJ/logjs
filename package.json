@@ -1,16 +1,17 @@
 {
     "name": "@swallowj/logjs",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "log for node",
-    "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SwallowJ/logjs.git"
+    },
+    "license": "MIT",
     "main": "index.js",
     "author": "SwallowJ",
     "dependencies": {
         "@types/node": "^14.14.10",
         "dayjs": "^1.9.6",
         "typescript": "^4.1.2"
-    },
-    "scripts": {
-        "test": "node test"
     }
 }
