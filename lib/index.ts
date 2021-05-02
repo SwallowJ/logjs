@@ -3,6 +3,7 @@ import util from "util";
 import path from "path";
 import dayjs from "dayjs";
 import figures from "figures";
+import { LOGGER } from "./typing";
 
 enum log_level {
     DEBUG = 0,

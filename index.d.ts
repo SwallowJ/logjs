@@ -1,3 +1,4 @@
+import { LOGGER } from "./lib/typing";
 declare enum log_level {
     DEBUG = 0,
     INFO = 1,
