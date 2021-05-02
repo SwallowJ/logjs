@@ -39,7 +39,7 @@ export default class Logger implements LOGGER.logger {
     private level: log_level = log_level.INFO;
 
     constructor(options?: LOGGER.optionsType) {
-        const { filePath = Logger.defaultFilePath, name, stack = true } = options || {};
+        const { filePath = Logger.defaultFilePath, name, stack = true, timeformat = "DD-MM-YYYY" } = options || {};
 
         this.stack = stack;
 
@@ -47,7 +47,7 @@ export default class Logger implements LOGGER.logger {
             const dir = path.resolve(process.cwd(), filePath);
             fs.existsSync(dir) || fs.mkdirSync(dir);
 
-            const deepDir = path.resolve(dir, dayjs().format("YY-MM-DD"));
+            const deepDir = path.resolve(dir, dayjs().format(timeformat));
             fs.existsSync(deepDir) || fs.mkdirSync(deepDir);
 
             let aft = "";

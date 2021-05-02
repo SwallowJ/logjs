@@ -33,12 +33,12 @@ var Logger = /** @class */ (function () {
     function Logger(options) {
         this.name = "main";
         this.level = log_level.INFO;
-        var _a = options || {}, _b = _a.filePath, filePath = _b === void 0 ? Logger.defaultFilePath : _b, name = _a.name, _c = _a.stack, stack = _c === void 0 ? true : _c;
+        var _a = options || {}, _b = _a.filePath, filePath = _b === void 0 ? Logger.defaultFilePath : _b, name = _a.name, _c = _a.stack, stack = _c === void 0 ? true : _c, _d = _a.timeformat, timeformat = _d === void 0 ? "DD-MM-YYYY" : _d;
         this.stack = stack;
         if (filePath) {
             var dir = path_1.default.resolve(process.cwd(), filePath);
             fs_1.default.existsSync(dir) || fs_1.default.mkdirSync(dir);
-            var deepDir = path_1.default.resolve(dir, dayjs_1.default().format("YY-MM-DD"));
+            var deepDir = path_1.default.resolve(dir, dayjs_1.default().format(timeformat));
             fs_1.default.existsSync(deepDir) || fs_1.default.mkdirSync(deepDir);
             var aft = "";
             name && ((aft = "-" + name), (this.name = name));

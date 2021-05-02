@@ -17,6 +17,8 @@ export namespace LOGGER {
          * is undefind? no log file
          */
         filePath?: string;
+
+        timeformat?: string;
     }
 
     interface levelType {
