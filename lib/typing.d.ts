@@ -1,4 +1,4 @@
-export namespace LOGGER {
+declare namespace LOGGER {
     interface optionsType {
         /**
          * logger name

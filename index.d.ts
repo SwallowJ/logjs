@@ -1,4 +1,3 @@
-import { LOGGER } from "./typing";
 declare enum log_level {
     DEBUG = 0,
     INFO = 1,
