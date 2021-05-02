@@ -1,6 +1,6 @@
 {
     "name": "@swallowj/logjs",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "description": "log for nodejs",
     "repository": {
         "type": "git",
