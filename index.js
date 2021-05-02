@@ -4,8 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = __importDefault(require("fs"));
+var util_1 = __importDefault(require("util"));
 var path_1 = __importDefault(require("path"));
 var dayjs_1 = __importDefault(require("dayjs"));
+var figures_1 = __importDefault(require("figures"));
 var log_level;
 (function (log_level) {
     log_level[log_level["DEBUG"] = 0] = "DEBUG";
@@ -13,88 +15,142 @@ var log_level;
     log_level[log_level["WARN"] = 2] = "WARN";
     log_level[log_level["ERROR"] = 3] = "ERROR";
     log_level[log_level["FATAL"] = 4] = "FATAL";
+    log_level[log_level["SUCCESS"] = 5] = "SUCCESS";
+    log_level[log_level["ALERT"] = 6] = "ALERT";
+    log_level[log_level["FAILD"] = 7] = "FAILD";
 })(log_level || (log_level = {}));
-var level_map = new Map([
-    [log_level.DEBUG, { style: '', name: 'Debug' }],
-    [log_level.INFO, { style: '\x1b[32m', name: 'Info' }],
-    [log_level.WARN, { style: '\x1b[33m', name: 'Warning' }],
-    [log_level.ERROR, { style: '\x1b[31m\x1b[4m', name: 'Error' }],
-    [log_level.FATAL, { style: '\x1b[47m\x1b[31m\x1b[4m', name: 'Fatal' }],
+var logEvent = new Map([
+    [log_level.DEBUG, { color: "\x1b[90m", type: "Debug" }],
+    [log_level.INFO, { color: "\x1b[32m", type: "Info" }],
+    [log_level.WARN, { color: "\x1b[33m", type: "Warning" }],
+    [log_level.ERROR, { color: "\x1b[31m\x1b[4m", type: "Error" }],
+    [log_level.FATAL, { color: "\x1b[47m\x1b[31m\x1b[4m", type: "Fatal" }],
+    [log_level.SUCCESS, { color: "\x1b[32m", type: "SUCCESS", prefix: figures_1.default.tick }],
+    [log_level.ALERT, { color: "\x1b[33m", type: "Alert", prefix: figures_1.default.warning }],
+    [log_level.FAILD, { color: "\x1b[31m\x1b[4m", type: "Faild", prefix: figures_1.default.cross }],
 ]);
 var Logger = /** @class */ (function () {
     function Logger(options) {
-        var _this = this;
-        this.name = 'main';
+        this.name = "main";
         this.level = log_level.INFO;
-        this.output = function (level, message) {
-            var _a;
-            var now = dayjs_1.default().format('YYYY-MM-DD HH:mm:ss SSS');
-            var stack = _this.stack ? "[" + _this.getStack() + "]" : '';
-            var _b = level_map.get(level), style = _b.style, name = _b.name;
-            var str = "[" + now + "][" + name + "][" + _this.name + "]" + stack + " " + message;
-            level >= _this.level && process.stdout.write("" + style + str + "\u001B[0m\n");
-            (_a = _this.writeStream) === null || _a === void 0 ? void 0 : _a.write(str + "\n");
-        };
-        var _a = options || {}, _b = _a.filePath, filePath = _b === void 0 ? Logger.defaultFilePath : _b, name = _a.name, stack = _a.stack;
-        this.stack = stack || false;
+        var _a = options || {}, _b = _a.filePath, filePath = _b === void 0 ? Logger.defaultFilePath : _b, name = _a.name, _c = _a.stack, stack = _c === void 0 ? true : _c;
+        this.stack = stack;
         if (filePath) {
             var dir = path_1.default.resolve(process.cwd(), filePath);
             fs_1.default.existsSync(dir) || fs_1.default.mkdirSync(dir);
-            var aft = '';
+            var deepDir = path_1.default.resolve(dir, dayjs_1.default().format("YY-MM-DD"));
+            fs_1.default.existsSync(deepDir) || fs_1.default.mkdirSync(deepDir);
+            var aft = "";
             name && ((aft = "-" + name), (this.name = name));
-            var logPath = path_1.default.resolve(dir, "" + dayjs_1.default().format('YYYY-MM-DD') + aft + ".log");
-            this.writeStream = fs_1.default.createWriteStream(logPath, { flags: 'a' });
+            var logPath = path_1.default.resolve(deepDir, name + ".log");
+            console.log(logPath);
+            this.writeStream = fs_1.default.createWriteStream(logPath, { flags: "a" });
         }
     }
+    Logger.prototype.__formateAsTime = function (type) {
+        var now = dayjs_1.default().format("YYYY-MM-DD HH:mm:ss.SSS");
+        var res = "[" + now + "][" + type + "]";
+        if (this.stack) {
+            res += "[" + this.getStack() + "]";
+        }
+        return res;
+    };
+    /**
+     * 输出到控制台
+     */
+    Logger.prototype.__outConsole = function (event) {
+        if ((event.level || 0) >= this.level) {
+            var res = "";
+            if (event.level && event.level > log_level.FATAL) {
+                res = "" + event.color + event.prefix + "  " + event.content + "\u001B[0m\n";
+            }
+            else {
+                res = "" + event.color + event.prefix + "\u001B[0m " + event.content + "\n";
+            }
+            process.stdout.write(res);
+        }
+    };
+    /**
+     * 输出到文件
+     */
+    Logger.prototype.__outFile = function (event) {
+        var _a;
+        (_a = this.writeStream) === null || _a === void 0 ? void 0 : _a.write(event.prefix + "  " + event.content + "\n");
+    };
+    Logger.prototype.__buildEvent = function (level, message) {
+        var event = logEvent.get(level) || { type: "", color: "" };
+        event.content = util_1.default.format.apply(util_1.default, message);
+        event.level = level;
+        if (level <= log_level.FATAL) {
+            event.prefix = this.__formateAsTime(event.type);
+        }
+        this.__outConsole(event);
+        this.__outFile(event);
+    };
     Logger.prototype.Debug = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.output(log_level.DEBUG, message);
+        this.__buildEvent(log_level.DEBUG, message);
     };
     Logger.prototype.Info = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.output(log_level.INFO, message);
+        this.__buildEvent(log_level.INFO, message);
     };
     Logger.prototype.Warn = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.output(log_level.WARN, message);
+        this.__buildEvent(log_level.WARN, message);
     };
     Logger.prototype.Error = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.output(log_level.ERROR, message);
+        this.__buildEvent(log_level.ERROR, message);
     };
     Logger.prototype.Fatal = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.output(log_level.FATAL, message);
+        this.__buildEvent(log_level.FATAL, message);
         process.exitCode = 1;
     };
-    Logger.prototype.getException = function () {
-        try {
-            throw Error();
+    Logger.prototype.Success = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
         }
-        catch (e) {
-            return e;
+        this.__buildEvent(log_level.SUCCESS, message);
+    };
+    Logger.prototype.Alert = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
         }
+        this.__buildEvent(log_level.ALERT, message);
+    };
+    Logger.prototype.Faild = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
+        }
+        this.__buildEvent(log_level.FAILD, message);
     };
     Logger.prototype.getStack = function () {
-        var _a, _b;
+        var _a;
         try {
-            var err = this.getException();
-            return "" + ((_b = (_a = err.stack) === null || _a === void 0 ? void 0 : _a.split('\n')[5].split('/').pop()) === null || _b === void 0 ? void 0 : _b.replace(/[()]/, ''));
+            var obj = Object.create(null);
+            Error.captureStackTrace(obj);
+            var res = (_a = obj.stack) === null || _a === void 0 ? void 0 : _a.split("\n")[5];
+            return res.slice(res.lastIndexOf("/") + 1, -1);
         }
         catch (e) {
             this.Error(e);
@@ -109,11 +165,12 @@ var Logger = /** @class */ (function () {
         return this;
     };
     Logger.clear = function () {
-        process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
+        process.stdout.write(process.platform === "win32" ? "\x1B[2J\x1B[0f" : "\x1B[2J\x1B[3J\x1B[H");
     };
     Logger.New = function (options) {
-        var name = (options === null || options === void 0 ? void 0 : options.name) || 'main';
-        var logger = Logger.objArr.find(function (obj) { return obj.name === name; }) || new Logger(options);
+        if (options === void 0) { options = {}; }
+        options.name = options.name || "main";
+        var logger = Logger.objArr.find(function (obj) { return obj.name === (options === null || options === void 0 ? void 0 : options.name); }) || new Logger(options);
         Logger.objArr.push(logger);
         return logger;
     };
@@ -127,7 +184,7 @@ var Logger = /** @class */ (function () {
         });
         Logger.objArr = [];
     };
-    Logger.defaultFilePath = '';
+    Logger.defaultFilePath = "./log";
     Logger.objArr = [];
     Logger.levelType = log_level;
     return Logger;

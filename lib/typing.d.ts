@@ -24,6 +24,14 @@ export namespace LOGGER {
         name: string;
     }
 
+    interface Event {
+        content?: string;
+        prefix?: string;
+        type: string;
+        color: string;
+        level?: number;
+    }
+
     interface logger {
         Debug(...message: any): void;
         Info(...message: any): void;

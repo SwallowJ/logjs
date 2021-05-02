@@ -1,7 +1,9 @@
-import fs from 'fs';
-import path from 'path';
-import dayjs from 'dayjs';
-import { LOGGER } from './typing';
+import fs from "fs";
+import util from "util";
+import path from "path";
+import dayjs from "dayjs";
+import figures from "figures";
+import { LOGGER } from "./typing";
 
 enum log_level {
     DEBUG = 0,
@@ -9,89 +11,140 @@ enum log_level {
     WARN,
     ERROR,
     FATAL,
+    SUCCESS,
+    ALERT,
+    FAILD,
 }
 
-const level_map = new Map<log_level, LOGGER.levelType>([
-    [log_level.DEBUG, { style: '', name: 'Debug' }],
-    [log_level.INFO, { style: '\x1b[32m', name: 'Info' }],
-    [log_level.WARN, { style: '\x1b[33m', name: 'Warning' }],
-    [log_level.ERROR, { style: '\x1b[31m\x1b[4m', name: 'Error' }],
-    [log_level.FATAL, { style: '\x1b[47m\x1b[31m\x1b[4m', name: 'Fatal' }],
+const logEvent = new Map<log_level, LOGGER.Event>([
+    [log_level.DEBUG, { color: "\x1b[90m", type: "Debug" }],
+    [log_level.INFO, { color: "\x1b[32m", type: "Info" }],
+    [log_level.WARN, { color: "\x1b[33m", type: "Warning" }],
+    [log_level.ERROR, { color: "\x1b[31m\x1b[4m", type: "Error" }],
+    [log_level.FATAL, { color: "\x1b[47m\x1b[31m\x1b[4m", type: "Fatal" }],
+
+    [log_level.SUCCESS, { color: "\x1b[32m", type: "SUCCESS", prefix: figures.tick }],
+    [log_level.ALERT, { color: "\x1b[33m", type: "Alert", prefix: figures.warning }],
+    [log_level.FAILD, { color: "\x1b[31m\x1b[4m", type: "Faild", prefix: figures.cross }],
 ]);
 
 export default class Logger implements LOGGER.logger {
-    private static defaultFilePath: string = '';
+    private static defaultFilePath: string = "./log";
     private static objArr: Logger[] = [];
     public static levelType = log_level;
 
     private stack: boolean;
-    private name: string = 'main';
+    private name: string = "main";
     private writeStream?: fs.WriteStream;
     private level: log_level = log_level.INFO;
 
     constructor(options?: LOGGER.optionsType) {
-        const { filePath = Logger.defaultFilePath, name, stack } = options || {};
+        const { filePath = Logger.defaultFilePath, name, stack = true } = options || {};
 
-        this.stack = stack || false;
+        this.stack = stack;
 
         if (filePath) {
             const dir = path.resolve(process.cwd(), filePath);
-
             fs.existsSync(dir) || fs.mkdirSync(dir);
 
-            let aft = '';
+            const deepDir = path.resolve(dir, dayjs().format("YY-MM-DD"));
+            fs.existsSync(deepDir) || fs.mkdirSync(deepDir);
+
+            let aft = "";
             name && ((aft = `-${name}`), (this.name = name));
 
-            const logPath = path.resolve(dir, `${dayjs().format('YYYY-MM-DD')}${aft}.log`);
-            this.writeStream = fs.createWriteStream(logPath, { flags: 'a' });
+            const logPath = path.resolve(deepDir, `${name}.log`);
+            console.log(logPath);
+            this.writeStream = fs.createWriteStream(logPath, { flags: "a" });
         }
     }
 
-    private output = (level: log_level, message?: any) => {
-        const now = dayjs().format('YYYY-MM-DD HH:mm:ss SSS');
+    private __formateAsTime(type: string) {
+        const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
+        let res = `[${now}][${type}]`;
 
-        const stack = this.stack ? `[${this.getStack()}]` : '';
-        const { style, name } = level_map.get(level)!;
-
-        const str = `[${now}][${name}][${this.name}]${stack} ${message}`;
-
-        level >= this.level && process.stdout.write(`${style}${str}\x1b[0m\n`);
-        this.writeStream?.write(`${str}\n`);
-    };
-
-    public Debug(...message: any) {
-        this.output(log_level.DEBUG, message);
+        if (this.stack) {
+            res += `[${this.getStack()}]`;
+        }
+        return res;
     }
 
-    public Info(...message: any) {
-        this.output(log_level.INFO, message);
+    /**
+     * 输出到控制台
+     */
+    private __outConsole(event: LOGGER.Event) {
+        if ((event.level || 0) >= this.level) {
+            let res = "";
+
+            if (event.level && event.level > log_level.FATAL) {
+                res = `${event.color}${event.prefix}  ${event.content}\x1b[0m\n`;
+            } else {
+                res = `${event.color}${event.prefix}\x1b[0m ${event.content}\n`;
+            }
+            process.stdout.write(res);
+        }
     }
 
-    public Warn(...message: any) {
-        this.output(log_level.WARN, message);
+    /**
+     * 输出到文件
+     */
+    private __outFile(event: LOGGER.Event) {
+        this.writeStream?.write(`${event.prefix}  ${event.content}\n`);
     }
 
-    public Error(...message: any) {
-        this.output(log_level.ERROR, message);
+    private __buildEvent(level: log_level, message: any[]) {
+        const event: LOGGER.Event = logEvent.get(level) || { type: "", color: "" };
+        event.content = util.format(...message);
+        event.level = level;
+
+        if (level <= log_level.FATAL) {
+            event.prefix = this.__formateAsTime(event.type);
+        }
+
+        this.__outConsole(event);
+        this.__outFile(event);
     }
 
-    public Fatal(...message: any) {
-        this.output(log_level.FATAL, message);
+    public Debug(...message: any[]) {
+        this.__buildEvent(log_level.DEBUG, message);
+    }
+
+    public Info(...message: any[]) {
+        this.__buildEvent(log_level.INFO, message);
+    }
+
+    public Warn(...message: any[]) {
+        this.__buildEvent(log_level.WARN, message);
+    }
+
+    public Error(...message: any[]) {
+        this.__buildEvent(log_level.ERROR, message);
+    }
+
+    public Fatal(...message: any[]) {
+        this.__buildEvent(log_level.FATAL, message);
         process.exitCode = 1;
     }
 
-    private getException(): Error {
-        try {
-            throw Error();
-        } catch (e) {
-            return e;
-        }
+    public Success(...message: any[]) {
+        this.__buildEvent(log_level.SUCCESS, message);
+    }
+
+    public Alert(...message: any[]) {
+        this.__buildEvent(log_level.ALERT, message);
+    }
+
+    public Faild(...message: any[]) {
+        this.__buildEvent(log_level.FAILD, message);
     }
 
     private getStack() {
         try {
-            const err = this.getException();
-            return `${err.stack?.split('\n')[5].split('/').pop()?.replace(/[()]/, '')}`;
+            const obj = Object.create(null);
+            Error.captureStackTrace(obj);
+
+            const res: string[] = obj.stack?.split("\n")[5];
+            return res.slice(res.lastIndexOf("/") + 1, -1);
         } catch (e) {
             this.Error(e);
         }
@@ -107,13 +160,12 @@ export default class Logger implements LOGGER.logger {
     }
 
     public static clear() {
-        process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
+        process.stdout.write(process.platform === "win32" ? "\x1B[2J\x1B[0f" : "\x1B[2J\x1B[3J\x1B[H");
     }
 
-    public static New(options?: LOGGER.optionsType) {
-        const name = options?.name || 'main';
-
-        const logger = Logger.objArr.find((obj) => obj.name === name) || new Logger(options);
+    public static New(options: LOGGER.optionsType = {}) {
+        options.name = options.name || "main";
+        const logger = Logger.objArr.find((obj) => obj.name === options?.name) || new Logger(options);
         Logger.objArr.push(logger);
         return logger;
     }

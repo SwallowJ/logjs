@@ -1,10 +1,13 @@
-import { LOGGER } from './lib/typing';
+import { LOGGER } from "./typing";
 declare enum log_level {
     DEBUG = 0,
     INFO = 1,
     WARN = 2,
     ERROR = 3,
     FATAL = 4,
+    SUCCESS = 5,
+    ALERT = 6,
+    FAILD = 7,
 }
 export default class Logger implements LOGGER.logger {
     private static defaultFilePath;
@@ -15,13 +18,24 @@ export default class Logger implements LOGGER.logger {
     private writeStream?;
     private level;
     constructor(options?: LOGGER.optionsType);
-    private output;
-    Debug(...message: any): void;
-    Info(...message: any): void;
-    Warn(...message: any): void;
-    Error(...message: any): void;
-    Fatal(...message: any): void;
-    private getException;
+    private __formateAsTime;
+    /**
+     * 输出到控制台
+     */
+    private __outConsole;
+    /**
+     * 输出到文件
+     */
+    private __outFile;
+    private __buildEvent;
+    Debug(...message: any[]): void;
+    Info(...message: any[]): void;
+    Warn(...message: any[]): void;
+    Error(...message: any[]): void;
+    Fatal(...message: any[]): void;
+    Success(...message: any[]): void;
+    Alert(...message: any[]): void;
+    Faild(...message: any[]): void;
     private getStack;
     close(): void;
     setLevel(level: log_level): this;
@@ -31,4 +45,3 @@ export default class Logger implements LOGGER.logger {
     static CloseAll(): void;
 }
 export {};
-//# sourceMappingURL=index.d.ts.map

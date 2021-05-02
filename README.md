@@ -5,27 +5,29 @@
 ### Usgae
 
 ```ts
-import Logger from './index';
+import Logger from "./index";
 
-process.on('exit', () => {
+process.on("exit", () => {
     Logger.CloseAll();
 });
 
-Logger.SetDefaultPath('./log');
-const logger = Logger.New({ name: 'translate', stack: true });
+const logger = Logger.New({ name: "translate" });
 
-logger.Info('Test');
+logger.Info("Test");
 ```
 
 ### Type of logger
 
 ```ts
 interface logger {
-    Debug(...message: any): void;
-    Info(...message: any): void;
-    Warn(...message: any): void;
-    Error(...message: any): void;
-    Fatal(...message: any): void;
+    Debug(...message: any[]): void;
+    Info(...message: any[]): void;
+    Warn(...message: any[]): void;
+    Error(...message: any[]): void;
+    Fatal(...message: any[]): void;
+    Success(...message: any[]): void;
+    Alert(...message: any[]): void;
+    Faild(...message: any[]): void;
 
     /**
      * close the writeStream
