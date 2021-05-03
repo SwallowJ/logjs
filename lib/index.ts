@@ -54,7 +54,6 @@ export default class Logger implements LOGGER.logger {
             name && ((aft = `-${name}`), (this.name = name));
 
             const logPath = path.resolve(deepDir, `${name}.log`);
-            console.log(logPath);
             this.writeStream = fs.createWriteStream(logPath, { flags: "a" });
         }
     }
@@ -128,6 +127,28 @@ export default class Logger implements LOGGER.logger {
 
     public Success(...message: any[]) {
         this.__buildEvent(log_level.SUCCESS, message);
+    }
+
+    public SuccessLine(...message: string[]) {
+        this.__writeLine(log_level.SUCCESS, message);
+    }
+
+    public CommonLine(...message: string[]) {
+        this.__writeLine(log_level.INFO, message);
+    }
+
+    private __writeLine(level: log_level, message: string[]) {
+        const str = util.format(...message);
+
+        const { color, prefix = "" } = logEvent.get(level) || {};
+
+        this.lineOver();
+        process.stdout.write(`${color}${prefix} ${str}\x1b[0m`);
+    }
+
+    public lineOver() {
+        process.stdout.clearLine(0);
+        process.stdout.write("\r");
     }
 
     public Alert(...message: any[]) {

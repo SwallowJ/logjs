@@ -43,7 +43,6 @@ var Logger = /** @class */ (function () {
             var aft = "";
             name && ((aft = "-" + name), (this.name = name));
             var logPath = path_1.default.resolve(deepDir, name + ".log");
-            console.log(logPath);
             this.writeStream = fs_1.default.createWriteStream(logPath, { flags: "a" });
         }
     }
