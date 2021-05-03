@@ -129,6 +129,30 @@ var Logger = /** @class */ (function () {
         }
         this.__buildEvent(log_level.SUCCESS, message);
     };
+    Logger.prototype.SuccessLine = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
+        }
+        this.__writeLine(log_level.SUCCESS, message);
+    };
+    Logger.prototype.CommonLine = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
+        }
+        this.__writeLine(log_level.INFO, message);
+    };
+    Logger.prototype.__writeLine = function (level, message) {
+        var str = util_1.default.format.apply(util_1.default, message);
+        var _a = logEvent.get(level) || {}, color = _a.color, _b = _a.prefix, prefix = _b === void 0 ? "" : _b;
+        this.lineOver();
+        process.stdout.write("" + color + prefix + " " + str + "\u001B[0m");
+    };
+    Logger.prototype.lineOver = function () {
+        process.stdout.clearLine(0);
+        process.stdout.write("\r");
+    };
     Logger.prototype.Alert = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {

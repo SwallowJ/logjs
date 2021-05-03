@@ -1,4 +1,4 @@
-import { LOGGER } from "./lib/typing";
+import { LOGGER } from "./typing";
 declare enum log_level {
     DEBUG = 0,
     INFO = 1,
@@ -7,7 +7,7 @@ declare enum log_level {
     FATAL = 4,
     SUCCESS = 5,
     ALERT = 6,
-    FAILD = 7,
+    FAILD = 7
 }
 export default class Logger implements LOGGER.logger {
     private static defaultFilePath;
@@ -49,3 +49,4 @@ export default class Logger implements LOGGER.logger {
     static CloseAll(): void;
 }
 export {};
+//# sourceMappingURL=index.d.ts.map
