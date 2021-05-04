@@ -2,7 +2,7 @@
 
 1. env typescript-4.1
 
-### Usgae
+## Usgae
 
 ```ts
 import Logger from "./index";
@@ -26,18 +26,20 @@ interface logger {
     Error(...message: any[]): void;
     Fatal(...message: any[]): void;
     Success(...message: any[]): void;
+    SuccessLine(...message: string[]): void;
+    CommonLine(...message: string[]): void;
+    private __writeLine;
+    lineOver(): void;
     Alert(...message: any[]): void;
     Faild(...message: any[]): void;
-
-    /**
-     * close the writeStream
-     */
+    private getStack;
     close(): void;
-
-    /**
-     * @param level log level
-     */
-    setLevel(level: log_level): void;
+    setLevel(level: log_level): this;
+    static clear(): void;
+    static New(options?: LOGGER.optionsType): Logger;
+    static SetDefaultPath(defaultFilePath: string): typeof Logger;
+    static CloseAll(): void;
+    static setGlobalLevel(level: log_level): typeof Logger;
 }
 ```
 
@@ -63,4 +65,19 @@ interface optionsType {
      */
     filePath?: string;
 }
+```
+
+## 日志级别设置
+
+```ts
+//独立设置
+Logger.New({ level: 0 });
+
+//全局设置
+Logger.setGlobalLevel(0);
+
+//环境变量
+export LOGGER_LEVEL = 0;
+
+//默认值 default=1
 ```

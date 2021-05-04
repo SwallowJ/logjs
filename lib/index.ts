@@ -32,15 +32,18 @@ export default class Logger implements LOGGER.logger {
     private static defaultFilePath: string = "./log";
     private static objArr: Logger[] = [];
     public static levelType = log_level;
+    static globalLevel: log_level;
 
     private stack: boolean;
     private name: string = "main";
     private writeStream?: fs.WriteStream;
-    private level: log_level = log_level.INFO;
+    private level: log_level;
 
     constructor(options?: LOGGER.optionsType) {
-        const { filePath = Logger.defaultFilePath, name, stack = true, timeformat = "DD-MM-YYYY" } = options || {};
+        const { filePath = Logger.defaultFilePath, name, stack = true, timeformat = "DD-MM-YYYY", level } =
+            options || {};
 
+        this.level = level ?? Logger.globalLevel ?? Number(process.env.LOGGER_LEVEL) ?? 1;
         this.stack = stack;
 
         if (filePath) {
@@ -144,6 +147,7 @@ export default class Logger implements LOGGER.logger {
 
         this.lineOver();
         process.stdout.write(`${color}${prefix} ${str}\x1b[0m`);
+        this.__outFile({ type: "", color: "", content: str, prefix });
     }
 
     public lineOver() {
@@ -201,5 +205,10 @@ export default class Logger implements LOGGER.logger {
             obj.close();
         });
         Logger.objArr = [];
+    }
+
+    public static setGlobalLevel(level: log_level) {
+        Logger.globalLevel = level;
+        return Logger;
     }
 }

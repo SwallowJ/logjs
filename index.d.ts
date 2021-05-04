@@ -1,4 +1,4 @@
-import { LOGGER } from "./lib/typing";
+import { LOGGER } from "./typing";
 declare enum log_level {
     DEBUG = 0,
     INFO = 1,
@@ -13,6 +13,7 @@ export default class Logger implements LOGGER.logger {
     private static defaultFilePath;
     private static objArr;
     static levelType: typeof log_level;
+    static globalLevel: log_level;
     private stack;
     private name;
     private writeStream?;
@@ -47,5 +48,6 @@ export default class Logger implements LOGGER.logger {
     static New(options?: LOGGER.optionsType): Logger;
     static SetDefaultPath(defaultFilePath: string): typeof Logger;
     static CloseAll(): void;
+    static setGlobalLevel(level: log_level): typeof Logger;
 }
 export {};
