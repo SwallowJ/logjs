@@ -43,7 +43,8 @@ export default class Logger implements LOGGER.logger {
         const { filePath = Logger.defaultFilePath, name, stack = true, timeformat = "DD-MM-YYYY", level } =
             options || {};
 
-        this.level = level ?? Logger.globalLevel ?? Number(process.env.LOGGER_LEVEL) ?? 1;
+        this.level = level ?? Logger.globalLevel ?? Number(process.env.LOGGER_LEVEL || 1);
+
         this.stack = stack;
 
         if (filePath) {
