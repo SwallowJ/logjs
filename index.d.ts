@@ -36,6 +36,7 @@ export default class Logger implements LOGGER.logger {
     Fatal(...message: any[]): void;
     Success(...message: any[]): void;
     SuccessLine(...message: string[]): void;
+    FailedLine(...message: string[]): void;
     CommonLine(...message: string[]): void;
     private __writeLine;
     lineOver(): void;

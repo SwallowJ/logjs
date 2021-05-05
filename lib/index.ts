@@ -137,6 +137,10 @@ export default class Logger implements LOGGER.logger {
         this.__writeLine(log_level.SUCCESS, message);
     }
 
+    public FailedLine(...message: string[]) {
+        this.__writeLine(log_level.FAILD, message);
+    }
+
     public CommonLine(...message: string[]) {
         this.__writeLine(log_level.INFO, message);
     }
@@ -147,7 +151,7 @@ export default class Logger implements LOGGER.logger {
         const { color, prefix = "" } = logEvent.get(level) || {};
 
         this.lineOver();
-        process.stdout.write(`${color}${prefix} ${str}\x1b[0m`);
+        process.stdout.write(`${color}${prefix}  ${str}\x1b[0m`);
         this.__outFile({ type: "", color: "", content: str, prefix });
     }
 

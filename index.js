@@ -137,6 +137,13 @@ var Logger = /** @class */ (function () {
         }
         this.__writeLine(log_level.SUCCESS, message);
     };
+    Logger.prototype.FailedLine = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
+        }
+        this.__writeLine(log_level.FAILD, message);
+    };
     Logger.prototype.CommonLine = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -148,7 +155,7 @@ var Logger = /** @class */ (function () {
         var str = util_1.default.format.apply(util_1.default, message);
         var _a = logEvent.get(level) || {}, color = _a.color, _b = _a.prefix, prefix = _b === void 0 ? "" : _b;
         this.lineOver();
-        process.stdout.write("" + color + prefix + " " + str + "\u001B[0m");
+        process.stdout.write("" + color + prefix + "  " + str + "\u001B[0m");
         this.__outFile({ type: "", color: "", content: str, prefix: prefix });
     };
     Logger.prototype.lineOver = function () {
