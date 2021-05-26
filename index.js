@@ -1,7 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault =
+    (this && this.__importDefault) ||
+    function (mod) {
+        return mod && mod.__esModule ? mod : { default: mod };
+    };
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs_1 = __importDefault(require("fs"));
 var util_1 = __importDefault(require("util"));
@@ -10,14 +12,15 @@ var dayjs_1 = __importDefault(require("dayjs"));
 var figures_1 = __importDefault(require("figures"));
 var log_level;
 (function (log_level) {
-    log_level[log_level["DEBUG"] = 0] = "DEBUG";
-    log_level[log_level["INFO"] = 1] = "INFO";
-    log_level[log_level["WARN"] = 2] = "WARN";
-    log_level[log_level["ERROR"] = 3] = "ERROR";
-    log_level[log_level["FATAL"] = 4] = "FATAL";
-    log_level[log_level["SUCCESS"] = 5] = "SUCCESS";
-    log_level[log_level["ALERT"] = 6] = "ALERT";
-    log_level[log_level["FAILD"] = 7] = "FAILD";
+    log_level[(log_level["DEBUG"] = 0)] = "DEBUG";
+    log_level[(log_level["INFO"] = 1)] = "INFO";
+    log_level[(log_level["WARN"] = 2)] = "WARN";
+    log_level[(log_level["ERROR"] = 3)] = "ERROR";
+    log_level[(log_level["FATAL"] = 4)] = "FATAL";
+    log_level[(log_level["SUCCESS"] = 5)] = "SUCCESS";
+    log_level[(log_level["ALERT"] = 6)] = "ALERT";
+    log_level[(log_level["FAILD"] = 7)] = "FAILD";
+    log_level[(log_level["LOG"] = 8)] = "LOG";
 })(log_level || (log_level = {}));
 var logEvent = new Map([
     [log_level.DEBUG, { color: "\x1b[90m", type: "Debug" }],
@@ -33,8 +36,19 @@ var Logger = /** @class */ (function () {
     function Logger(options) {
         var _a;
         this.name = "main";
-        var _b = options || {}, _c = _b.filePath, filePath = _c === void 0 ? Logger.defaultFilePath : _c, name = _b.name, _d = _b.stack, stack = _d === void 0 ? true : _d, _e = _b.timeformat, timeformat = _e === void 0 ? "DD-MM-YYYY" : _e, level = _b.level;
-        this.level = (_a = level !== null && level !== void 0 ? level : Logger.globalLevel) !== null && _a !== void 0 ? _a : Number(process.env.LOGGER_LEVEL || 1);
+        var _b = options || {},
+            _c = _b.filePath,
+            filePath = _c === void 0 ? Logger.defaultFilePath : _c,
+            name = _b.name,
+            _d = _b.stack,
+            stack = _d === void 0 ? true : _d,
+            _e = _b.timeformat,
+            timeformat = _e === void 0 ? "DD-MM-YYYY" : _e,
+            level = _b.level;
+        this.level =
+            (_a = level !== null && level !== void 0 ? level : Logger.globalLevel) !== null && _a !== void 0
+                ? _a
+                : Number(process.env.LOGGER_LEVEL || 1);
         this.stack = stack;
         if (filePath) {
             var dir = path_1.default.resolve(process.cwd(), filePath);
@@ -63,8 +77,7 @@ var Logger = /** @class */ (function () {
             var res = "";
             if (event.level && event.level > log_level.FATAL) {
                 res = "" + event.color + event.prefix + "  " + event.content + "\u001B[0m\n";
-            }
-            else {
+            } else {
                 res = "" + event.color + event.prefix + "\u001B[0m " + event.content + "\n";
             }
             process.stdout.write(res);
@@ -75,7 +88,8 @@ var Logger = /** @class */ (function () {
      */
     Logger.prototype.__outFile = function (event) {
         var _a;
-        (_a = this.writeStream) === null || _a === void 0 ? void 0 : _a.write(event.prefix + "  " + event.content + "\n");
+        var str = event.prefix ? event.prefix + "  " + event.content + "\n" : event.content + "\n";
+        (_a = this.writeStream) === null || _a === void 0 ? void 0 : _a.write(str);
     };
     Logger.prototype.__buildEvent = function (level, message) {
         var event = logEvent.get(level) || { type: "", color: "" };
@@ -130,6 +144,13 @@ var Logger = /** @class */ (function () {
         }
         this.__buildEvent(log_level.SUCCESS, message);
     };
+    Logger.prototype.log = function () {
+        var message = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            message[_i] = arguments[_i];
+        }
+        this.__writeLine(log_level.LOG, message);
+    };
     Logger.prototype.SuccessLine = function () {
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -153,7 +174,11 @@ var Logger = /** @class */ (function () {
     };
     Logger.prototype.__writeLine = function (level, message) {
         var str = util_1.default.format.apply(util_1.default, message);
-        var _a = logEvent.get(level) || {}, color = _a.color, _b = _a.prefix, prefix = _b === void 0 ? "" : _b;
+        var _a = logEvent.get(level) || {},
+            _b = _a.color,
+            color = _b === void 0 ? "" : _b,
+            _c = _a.prefix,
+            prefix = _c === void 0 ? "" : _c;
         this.lineOver();
         process.stdout.write("" + color + prefix + "  " + str + "\u001B[0m");
         this.__outFile({ type: "", color: "", content: str, prefix: prefix });
@@ -183,8 +208,7 @@ var Logger = /** @class */ (function () {
             Error.captureStackTrace(obj);
             var res = (_a = obj.stack) === null || _a === void 0 ? void 0 : _a.split("\n")[5];
             return res.slice(res.lastIndexOf("/") + 1, -1);
-        }
-        catch (e) {
+        } catch (e) {
             this.Error(e);
         }
     };
@@ -200,9 +224,14 @@ var Logger = /** @class */ (function () {
         process.stdout.write(process.platform === "win32" ? "\x1B[2J\x1B[0f" : "\x1B[2J\x1B[3J\x1B[H");
     };
     Logger.New = function (options) {
-        if (options === void 0) { options = {}; }
+        if (options === void 0) {
+            options = {};
+        }
         options.name = options.name || "main";
-        var logger = Logger.objArr.find(function (obj) { return obj.name === (options === null || options === void 0 ? void 0 : options.name); }) || new Logger(options);
+        var logger =
+            Logger.objArr.find(function (obj) {
+                return obj.name === (options === null || options === void 0 ? void 0 : options.name);
+            }) || new Logger(options);
         Logger.objArr.push(logger);
         return logger;
     };
@@ -224,5 +253,5 @@ var Logger = /** @class */ (function () {
     Logger.objArr = [];
     Logger.levelType = log_level;
     return Logger;
-}());
+})();
 exports.default = Logger;

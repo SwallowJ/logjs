@@ -14,6 +14,7 @@ enum log_level {
     SUCCESS,
     ALERT,
     FAILD,
+    LOG,
 }
 
 const logEvent = new Map<log_level, LOGGER.Event>([
@@ -92,7 +93,8 @@ export default class Logger implements LOGGER.logger {
      * 输出到文件
      */
     private __outFile(event: LOGGER.Event) {
-        this.writeStream?.write(`${event.prefix}  ${event.content}\n`);
+        const str = event.prefix ? `${event.prefix}  ${event.content}\n` : `${event.content}\n`;
+        this.writeStream?.write(str);
     }
 
     private __buildEvent(level: log_level, message: any[]) {
@@ -133,6 +135,10 @@ export default class Logger implements LOGGER.logger {
         this.__buildEvent(log_level.SUCCESS, message);
     }
 
+    public log(...message: any) {
+        this.__writeLine(log_level.LOG, message);
+    }
+
     public SuccessLine(...message: string[]) {
         this.__writeLine(log_level.SUCCESS, message);
     }
@@ -148,7 +154,7 @@ export default class Logger implements LOGGER.logger {
     private __writeLine(level: log_level, message: string[]) {
         const str = util.format(...message);
 
-        const { color, prefix = "" } = logEvent.get(level) || {};
+        const { color = "", prefix = "" } = logEvent.get(level) || {};
 
         this.lineOver();
         process.stdout.write(`${color}${prefix}  ${str}\x1b[0m`);

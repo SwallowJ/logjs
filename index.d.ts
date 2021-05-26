@@ -8,6 +8,7 @@ declare enum log_level {
     SUCCESS = 5,
     ALERT = 6,
     FAILD = 7,
+    LOG = 8,
 }
 export default class Logger implements LOGGER.logger {
     private static defaultFilePath;
@@ -35,6 +36,7 @@ export default class Logger implements LOGGER.logger {
     Error(...message: any[]): void;
     Fatal(...message: any[]): void;
     Success(...message: any[]): void;
+    log(...message: any): void;
     SuccessLine(...message: string[]): void;
     FailedLine(...message: string[]): void;
     CommonLine(...message: string[]): void;
