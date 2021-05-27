@@ -145,11 +145,14 @@ var Logger = /** @class */ (function () {
         this.__buildEvent(log_level.SUCCESS, message);
     };
     Logger.prototype.log = function () {
+        var _a;
         var message = [];
         for (var _i = 0; _i < arguments.length; _i++) {
             message[_i] = arguments[_i];
         }
-        this.__writeLine(log_level.LOG, message);
+        var str = util_1.default.format.apply(util_1.default, message);
+        process.stdout.write(str);
+        (_a = this.writeStream) === null || _a === void 0 ? void 0 : _a.write(str.replace(/\x1B\[\d+m/g, ""));
     };
     Logger.prototype.SuccessLine = function () {
         var message = [];

@@ -136,7 +136,9 @@ export default class Logger implements LOGGER.logger {
     }
 
     public log(...message: any) {
-        this.__writeLine(log_level.LOG, message);
+        const str = util.format(...message);
+        process.stdout.write(str);
+        this.writeStream?.write(str.replace(/\x1B\[\d+m/g, ""));
     }
 
     public SuccessLine(...message: string[]) {
